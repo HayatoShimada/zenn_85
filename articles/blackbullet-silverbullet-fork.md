@@ -100,6 +100,10 @@ SilverBullet を選び続けた理由はシンプルで、**データが Markdow
 
 フォークより先に生まれたのが、検索サイドカーの **memo-mcp** です。最初は「Claude から自分のメモを検索・追記したい」というだけの MCP サーバーでした。
 
+SilverBullet + Raspberry Pi + Tailscale + 自作 MCP という構成にたどり着いた経緯は、以前の記事に書きました。
+
+https://zenn.dev/85store/articles/3f0f6a1bd22bb8
+
 最初のコミットの翌日には、検索を**節（`##` 見出し）単位のハイブリッド検索**に作り替えています。
 
 - **語彙検索**: SQLite FTS5 の trigram トークナイザ。日本語を形態素解析なしで部分一致できる
@@ -109,10 +113,6 @@ SilverBullet を選び続けた理由はシンプルで、**データが Markdow
 SQLite は公式の WASM ビルドをインメモリで使っています。最初の呼び出しで遅延構築し、以降は呼び出しのたびに mtime を見て差分だけ更新します。ネイティブ拡張がないので、Pi の ARM でもビルドで悩みません。
 
 評価用のゴールデンセットも用意し、`npm run eval` で recall@k と MRR を測れるようにしました。当時の自分のメモでは **hybrid の recall@5 が 0.92、MRR が 0.856** でした。これは以降の改修の回帰基準にしています。
-
-検索の設計（節単位にした理由、行番号の扱い、RRF の詳細）は前回の記事に書きました。
-
-https://zenn.dev/85store/articles/memo-mcp-hybrid-rag
 
 ### Phase 0: Pi 5 の上でフォークをビルドする
 
