@@ -110,6 +110,10 @@ SQLite は公式の WASM ビルドをインメモリで使っています。最�
 
 評価用のゴールデンセットも用意し、`npm run eval` で recall@k と MRR を測れるようにしました。当時の自分のメモでは **hybrid の recall@5 が 0.92、MRR が 0.856** でした。これは以降の改修の回帰基準にしています。
 
+検索の設計（節単位にした理由、行番号の扱い、RRF の詳細）は前回の記事に書きました。
+
+https://zenn.dev/85store/articles/memo-mcp-hybrid-rag
+
 ### Phase 0: Pi 5 の上でフォークをビルドする
 
 2026 年 10 月 1 日にフォークを決め、まず Pi 5 で SilverBullet をビルドするところから始めました。ホストには Rust も Node 24 もないので、ビルドはすべて Docker 内で行います。
