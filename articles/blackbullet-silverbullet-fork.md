@@ -3,7 +3,7 @@ title: "SilverBullet をフォークして「AI ネイティブな自分専用�
 emoji: "🖤"
 type: "tech"
 topics: ["silverbullet", "mcp", "claudecode", "rag", "typescript"]
-published: false
+published: true
 ---
 
 ## はじめに
