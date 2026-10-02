@@ -1,9 +1,9 @@
 ---
-title: "microCMS をやめて、Raspberry Pi で Payload CMS を動かす（Tailscale でログイン、R2 に書き出し・バックアップ）"
+title: "microCMS をやめて、Raspberry Pi で Payload CMS を動かす"
 emoji: "🗂️"
 type: "tech"
 topics: ["payloadcms", "nextjs", "tailscale", "cloudflare", "raspberrypi"]
-published: true
+published: false
 ---
 
 古着屋のサイト（Next.js 16 / Vercel）のブログとバナーを、microCMS から**自宅の Raspberry Pi で動かす Payload CMS** に移しました。
