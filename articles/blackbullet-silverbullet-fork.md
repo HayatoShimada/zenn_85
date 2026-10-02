@@ -38,8 +38,8 @@ BlackBullet は SilverBullet プロジェクトとは無関係の非公式フォ
 - MCP サーバーを同梱しているので、AI アシスタントが同じメモを読み書きできる
 - すべて自分のマシンで動く。自分で決めない限り、メモの本文は外に出ない
 
-<!-- 📸 スクショ1: 全体画面。左にページツリー（絵文字アイコン付き）、本文にカバー画像＋大きなアイコンのページヘッダー、下に関連ノートのドック。記事のアイキャッチ兼用
-![](/images/blackbullet-silverbullet-fork/01-overview.png) -->
+![ページツリー、カバー画像とアイコンのヘッダー、下に関連ノート（デモ用のスペース）](/images/blackbullet-silverbullet-fork/01-overview.png)
+*ページツリー、カバー画像とアイコンのヘッダー、下に関連ノート（デモ用のスペース）*
 
 起動は Docker だけで完結します。
 
@@ -50,28 +50,13 @@ cd blackbullet
 # → http://127.0.0.1:3000
 ```
 
-<!-- 📸 スクショ2: ./setup.sh 完了時のターミナル出力（URL と claude mcp add コマンドが表示されたところ）。トークンは必ずマスク
-![](/images/blackbullet-silverbullet-fork/02-setup.png) -->
+![./setup.sh の出力。最後に MCP クライアントの登録コマンドが表示される（トークンは伏せ字）](/images/blackbullet-silverbullet-fork/02-setup.png)
+*./setup.sh の出力。最後に MCP クライアントの登録コマンドが表示される（トークンは伏せ字）*
 
 ### 全体構成
 
-```
-┌────────────── ブラウザ ──────────────┐
-│ CodeMirror 6 エディタ / Space Lua     │
-│ ツリー・ブロック・DB ビュー・グラフ   │
-└──────────────┬───────────────────────┘
-               │ /.fs  /.events  /.proxy/127.0.0.1:3010/...
-┌──────────────▼───────────────┐   同じネットワーク名前空間
-│ app (Rust / Axum)             │◄─────────────┐
-│ SilverBullet サーバー          │              │
-└──────────────┬───────────────┘   ┌──────────┴──────────────┐
-               │                    │ memo-mcp (Node)          │
-        ./space/*.md  ◄────────────│ MCP + REST サイドカー     │
-        （唯一の正）                │ FTS5 + ローカル埋め込み   │
-                                    └──────────▲──────────────┘
-                                               │ MCP (Bearer)
-                                     Claude Code / Claude Desktop / Cursor …
-```
+![全体構成。app と memo-mcp は 1 つのネットワーク名前空間で動き、どちらも ./space の Markdown を読む](/images/blackbullet-silverbullet-fork/fig-architecture.png)
+*全体構成。app と memo-mcp は 1 つのネットワーク名前空間で動き、どちらも ./space の Markdown を読む*
 
 リポジトリには 3 つの成果物が入っています。
 
@@ -109,6 +94,9 @@ https://zenn.dev/85store/articles/3f0f6a1bd22bb8
 - **語彙検索**: SQLite FTS5 の trigram トークナイザ。日本語を形態素解析なしで部分一致できる
 - **意味検索**: `Xenova/multilingual-e5-small`（ONNX q8、384 次元）をローカルの CPU で実行
 - **統合**: 2 つの順位を Reciprocal Rank Fusion（RRF、k=60）でまとめ、ページ名一致・`status: active`・ジャーナルの新しさでブーストする
+
+![節単位のハイブリッド検索](/images/blackbullet-silverbullet-fork/fig-hybrid.png)
+*節単位のハイブリッド検索*
 
 SQLite は公式の WASM ビルドをインメモリで使っています。最初の呼び出しで遅延構築し、以降は呼び出しのたびに mtime を見て差分だけ更新します。ネイティブ拡張がないので、Pi の ARM でもビルドで悩みません。
 
@@ -155,11 +143,11 @@ config.set("memoSidecar", {url = "/.proxy/127.0.0.1:3010", token = "...", space 
 
 e5 の類似度は全体的に高めの値に集まります。そのため、しきい値 0.80 ではほとんど何も絞れず、既定値は 0.92 に落ち着きました。
 
-<!-- 📸 スクショ3: Memo: Search のパネル。Details 表示で順位バッジ（L2 S1 · 0.0328）が見える状態。キーワードが一致しないのに意味で当たった結果が上位にある例が理想
-![](/images/blackbullet-silverbullet-fork/03-search.png) -->
+![Memo: Search の Details 表示。L は語彙検索の順位、S は意味検索の順位、右端は RRF のスコア](/images/blackbullet-silverbullet-fork/03-search.png)
+*Memo: Search の Details 表示。L は語彙検索の順位、S は意味検索の順位、右端は RRF のスコア*
 
-<!-- 📸 スクショ4: グラフ。明示リンク（実線）とセマンティック辺（ティールの破線）が混在し、右のサイドバーに Similarity スライダと Hops が見える状態
-![](/images/blackbullet-silverbullet-fork/04-graph.png) -->
+![グラフ。実線が明示リンク、ティールの破線が内容の似ているノート（意味辺）](/images/blackbullet-silverbullet-fork/04-graph.png)
+*グラフ。実線が明示リンク、ティールの破線が内容の似ているノート（意味辺）*
 
 実ブラウザ（Playwright + Chromium）で確かめている途中で、いくつかバグが見つかりました。
 
@@ -193,6 +181,9 @@ export function transition(state: TreeState, event: TreeEvent): Transition {
 // View: props を描画して emit するだけ。editor.* や syscall を直接呼ばない
 ```
 
+![View・Mediator・Runner の関係](/images/blackbullet-silverbullet-fork/fig-mediator.png)
+*View・Mediator・Runner の関係*
+
 ドラッグ、ピッカー、書き込み中といった状態が絡み合う UI では、この形の効き目が大きいと感じました。たとえばツリーの移動中は他のイベントをすべて無視するので、rename が二重に走りません。DB ビューでは書き込みを 1 件ずつ直列化しています。遅れて届いた古い応答は捨てられます。こうした「ユーザーが困る競合」が、状態機械のテストで潰せます。
 
 Phase 1 のグラフ UI はこのルールを決める前に作っていたので、あとから合わせました。約 10 個の状態を抱えた 468 行の `App` コンポーネントを、Mediator・Runner・Passive View に分解しています。
@@ -209,11 +200,11 @@ Phase 1 のグラフ UI はこのルールを決める前に作っていたの�
 - ページヘッダー（カバー画像と大きな絵文字アイコン）
 - `@` 補完に人・日付・ページを混ぜる（`@今日` で今日のジャーナルにリンク）
 
-<!-- 📸 スクショ5: ツリーで並べ替えドラッグ中。挿入ライン（sb-nav-drop-before/after）が出ている瞬間。GIF にすると分かりやすい
-![](/images/blackbullet-silverbullet-fork/05-tree-drag.png) -->
+![ツリーで「技術ブログ執筆」をドラッグ中。挿入位置に線が出る](/images/blackbullet-silverbullet-fork/05-tree-drag.png)
+*ツリーで「技術ブログ執筆」をドラッグ中。挿入位置に線が出る*
 
-<!-- 📸 スクショ6: `@今日` と打ったときの補完候補（人・日付・ページが混在）
-![](/images/blackbullet-silverbullet-fork/06-mention.png) -->
+![@ の補完に、人・日付・ページが混ざって出る](/images/blackbullet-silverbullet-fork/06-mention.png)
+*@ の補完に、人・日付・ページが混ざって出る*
 
 ここでも upstream のバグを 1 つ直しています。`plug-api/lib/yaml.ts` の `applyPatches` は、既存のキーが複数行の値（ネストした mapping や list）を持つとき、キーの行だけを置き換えていました。古い行が残るので、**キーが重複した壊れた frontmatter** ができてしまいます。
 
@@ -233,8 +224,8 @@ CodeMirror 6 の上に、Notion のようなブロック操作を載せました
 - CodeMirror の更新中にレイアウトを読むと `Reading the editor layout isn't allowed during an update` で落ちる。挿入ラインの位置計算は `queueMicrotask` で更新の外に出した
 - 600 節（約 6,600 行）のページでも動くよう、ドラッグ中はポインタの前後 60 行だけを計測する
 
-<!-- 📸 スクショ7: ブロックエディタ。左余白の ⠿ ハンドルと ▾ 折りたたみが見え、リスト項目をドラッグして挿入ラインが出ている状態（GIF 推奨：横に動かしてネストが深くなる様子）
-![](/images/blackbullet-silverbullet-fork/07-block-drag.png) -->
+![ブロックエディタ。左余白のハンドルでドラッグ、三角で折りたたみ](/images/blackbullet-silverbullet-fork/07-block.png)
+*ブロックエディタ。左余白のハンドルでドラッグ、三角で折りたたみ*
 
 ### Phase 4: データベースビュー
 
@@ -249,8 +240,8 @@ view: board
 
 ボードのカードをドラッグすると、そのページの `status` が書き換わります。カレンダーでドラッグすると期限が変わり、表のセルを編集すると frontmatter が更新されます。
 
-<!-- 📸 スクショ8: DB ビューのボード表示（active / someday / done の 3 列）。可能なら同じページの ```db ブロックのソースと左右に並べる
-![](/images/blackbullet-silverbullet-fork/08-db-board.png) -->
+![db ブロックのボード表示。カードをドラッグすると status が書き換わる](/images/blackbullet-silverbullet-fork/08-db-board.png)
+*db ブロックのボード表示。カードをドラッグすると status が書き換わる*
 
 ここでの一番の問題は、**Markdown ファイルが正**であることとの整合でした。
 
@@ -277,8 +268,8 @@ database.define {
 
 ```` ```db ```` ブロックで `database: projects` と書くと、型・選択肢・列順がビューに反映され、「+ New」でテンプレートから行（＝ページ）を作れます。続いて、行メニュー（リネーム、複製、アーカイブ、ゴミ箱）、保存ビュー、`lt` / `before` / `contains` などのフィルタ、タッチ操作でのドラッグも足しました。
 
-<!-- 📸 スクショ9: database: projects のテーブル表示。型付きの列と「+ New」ボタン、行メニューが開いている状態
-![](/images/blackbullet-silverbullet-fork/09-db-new.png) -->
+![database: projects のテーブル表示。右上の「+ New」で行（ページ）を作り、「…」で行メニュー](/images/blackbullet-silverbullet-fork/09-db-table.png)
+*database: projects のテーブル表示。右上の「+ New」で行（ページ）を作り、「…」で行メニュー*
 
 ### 公開: 1 コマンドで動くようにする
 
@@ -302,8 +293,8 @@ database.define {
 - **PDF / Office 文書の検索**: `.pdf`、`.docx`、`.xlsx`、`.pptx` などを `pdftotext` / `unzip` で抽出し、「`<file> p.3`」「`slide.N`」の単位で同じインデックスに入れます。OCR（tesseract）はオプションです
 - **運用コマンド**: `./setup.sh --backup / --restore / --status / --upgrade`
 
-<!-- 📸 スクショ10: Memo: Ask の回答。[[Page@L12]] 形式の引用と Sources 一覧が見える状態
-![](/images/blackbullet-silverbullet-fork/10-ask.png) -->
+![Memo: Ask の流れ](/images/blackbullet-silverbullet-fork/fig-ask.png)
+*Memo: Ask の流れ*
 
 ## AI から使う
 
@@ -316,8 +307,8 @@ claude mcp add --transport http memo http://127.0.0.1:3010/mcp \
 
 ツールは `search_notes`、`read_note`、`related_notes`、`list_tasks`、`list_journal`、`append_journal`、`add_inbox` などです。書き込み系は、読んだときの `modified` を `expected_modified` として渡す楽観的な競合検出付きです。書き込み自体も、同じディレクトリの一時ファイルに書いてから fsync と rename をするアトミックな方式にしています。
 
-<!-- 📸 スクショ11: Claude Code から search_notes / read_note を呼んで、メモを根拠に答えているターミナル画面
-![](/images/blackbullet-silverbullet-fork/11-claude-code.png) -->
+![Claude Code から memo-mcp のツールを呼び、メモを根拠に答えたところ（claude -p の実行ログから描き起こし）](/images/blackbullet-silverbullet-fork/11-claude-code.png)
+*Claude Code から memo-mcp のツールを呼び、メモを根拠に答えたところ（claude -p の実行ログから描き起こし）*
 
 `CONFIG.md` にはサイドカーのトークンや API キーが入るため、インデックスに入れないだけでなく、すべての読み書き経路で拒否しています。
 
@@ -325,10 +316,8 @@ claude mcp add --transport http memo http://127.0.0.1:3010/mcp \
 
 スマホや外出先から使いたい。でも、メモアプリにパスワード画面を作ってインターネットに晒すのは避けたい。そこで `./setup.sh --tailnet` で、Tailscale のネットワーク内からだけ届く HTTPS の入口を立てられるようにしました。
 
-```
-tailnet の端末 ─► 専用 tailnet ノード :443
-                   └ Caddy (TLS) ─► whois 認証サービス ─► app / memo-mcp
-```
+![tailnet 限定の入口。インターネットからは届かない](/images/blackbullet-silverbullet-fork/fig-tailnet.png)
+*tailnet 限定の入口。インターネットからは届かない*
 
 - 証明書は Let's Encrypt の DNS-01（Cloudflare）で取るので、受信ポートを開ける必要はありません。名前は普通のドメインですが、解決先は tailnet のプライベートアドレスです
 - 認証サービスが `tailscaled` に「接続元は誰か」（whois）を問い合わせ、許可リストにあるログインだけを通します。Tailscale の ACL とは独立した二重のチェックです
