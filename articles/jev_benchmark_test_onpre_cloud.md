@@ -1,3 +1,11 @@
+---
+title: "Clef-flashでの画像分類をベンチマークする（オンプレ vs クラウド）"
+emoji: "📸"
+type: "tech"
+topics: ["jev", "clef"]
+published: true
+---
+
 # Clef-flashでの画像分類をベンチマークする（オンプレ vs クラウド）
 
 ## はじめに
