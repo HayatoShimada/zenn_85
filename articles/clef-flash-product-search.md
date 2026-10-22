@@ -3,7 +3,7 @@ title: "古着屋のオンラインストアに、ことばと写真で探せる
 emoji: "🔍"
 type: "tech"
 topics: ["cloudflare", "workersai", "shopify", "clef", "claudecode"]
-published: false
+published: true
 ---
 
 古着屋のオンラインストア（Shopify）に、**ことばの意味や写真で商品を探せる検索窓**を付けました。「冬に着る暖かいアウター」「キャンプに行く服」と書けば、品名に「アウター」「キャンプ」が入っていなくても、フリースやマウンテンパーカーが並びます。カメラのボタンで服の写真を撮れば、似た商品を探します。
